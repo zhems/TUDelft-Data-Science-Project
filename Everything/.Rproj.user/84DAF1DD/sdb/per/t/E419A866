@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1527087266245.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "E419A866",
+    "lastKnownWriteTime" : 796091489,
+    "last_content_update" : -2147483648,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "7865A16F",
+        "caption" : "m46plot",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=m46plot&cache_key=7865A16F",
+        "displayedObservations" : 9,
+        "environment" : "",
+        "object" : "m46plot",
+        "preview" : 0,
+        "totalObservations" : 9,
+        "variables" : 19
+    },
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

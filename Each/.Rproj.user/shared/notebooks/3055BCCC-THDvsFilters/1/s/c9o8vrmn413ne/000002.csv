@@ -1,0 +1,5 @@
+"0","ggplot(data = df3[df3$variable==""THD1"",]) + geom_boxplot(aes(x=type, y = value, fill = type)) + xlab(""Filter Activation Combination"") + ylab(""THD1"") +geom_line(group=1,data=df3count, aes(y=count,x=factor(x)),colour=""red"") + ggtitle(paste(""Boxplot of THD1"")) + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = ""black""))
+"
+"2","Error in ggplot(data = df3[df3$variable == ""THD1"", ]) : 
+  could not find function ""ggplot""
+"

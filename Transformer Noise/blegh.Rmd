@@ -1,0 +1,78 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r cars}
+# Importing libraries and reading data
+library(ggplot2)
+library(gridExtra)
+library(reshape)
+library(lubridate)
+m46 <- read.csv("data/MP46.csv")
+m60 <- read.csv("data/MP60.csv")
+switch <- read.csv("data/switching_data.csv")
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+# Transforming date and time variables
+m46$StartTime <- as.POSIXct(m46$StartTime, format = "%d/%m/%Y %H:%M:%S")
+m60$StartTime <- as.POSIXct(m60$StartTime, format = "%d/%m/%Y %H:%M:%S")
+switch$datetime <- paste(switch[,1], switch$Time)
+switch$datetime <- as.POSIXct(switch$datetime, format = "%d/%m/%Y %H:%M:%S")
+switch$month <- month(switch$datetime)
+switch[,1] <- NULL
+switch$Time <- NULL
+switch$datetime10mins <- floor_date(switch$datetime, "10 minutes")
+# Separating dataset based on filters
+B11 <- switch[switch$Element=="MDC_MDC AC Filter 11 VS",]
+B12 <- switch[switch$Element=="MDC_MDC AC Filter 12 VS",]
+B21 <- switch[switch$Element=="MDC_MDC AC Filter 21 VS",]
+B22 <- switch[switch$Element=="MDC_MDC AC Filter 22 VS",]
+
+# Adding name for filter as variable
+B11$name <- 'B11'
+B12$name <- 'B12'
+B21$name <- 'B21'
+B22$name <- 'B22'
+
+# Removing second of each repeated status
+B11 <- B11[seq(1, nrow(B11), 2),] 
+B12 <- B12[seq(1, nrow(B12), 2),] 
+B21 <- B21[seq(1, nrow(B21), 2),] 
+B22 <- B22[seq(1, nrow(B22), 2),]
+
+B11$StartTime<-B11$datetime10mins
+```
+
+```{r}
+B11=B11[,seq(1,7,1)]
+B11[which(B11$status=='UIT'),8] = -1.0
+B11[which(B11$status=='IN'),8] = 0.4
+B12[which(B12$status=='UIT'),8] = -1.0
+B12[which(B12$status=='IN'),8] = 0.8
+B21[which(B21$status=='UIT'),8] = -1.0
+B21[which(B21$status=='IN'),8] = 1.2
+B22[which(B22$status=='UIT'),8] = -1.0
+B22[which(B22$status=='IN'),8] = 1.6
+#B11$meow <- ifelse(B11$status == 'UIT', -1.0, 0.4)
+```
+
+```{r}
+df <- rbind(B11, B12)
+df <- rbind(df, B21)
+df <- rbind(df, B22)
+
+df$month <- month.abb[month(df$datetime)]
+df$month <- factor(df$month, c("Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr")) #Ordering based on months
+months = c("Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr")
+for (month in months){
+  print(
+    ggplot(data=df[df$month==month,]) + geom_step(aes(x=datetime, y=V8, color = name)) + ggtitle(paste("Filters Activation during", month)) + xlab("Time") +ylab("On/Off") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black")) + scale_color_manual(labels=c("B11", "B12", "B21", "B22"), values = c("#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3"))
+    )
+}
+```

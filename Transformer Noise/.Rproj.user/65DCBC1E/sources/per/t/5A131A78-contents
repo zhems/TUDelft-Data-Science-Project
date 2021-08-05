@@ -1,0 +1,120 @@
+---
+title: "Visualisation of THD"
+output: html_notebook
+---
+
+```{r}
+# Importing libraries and reading data
+library(ggplot2)
+library(gridExtra)
+library(reshape)
+library(lubridate)
+m46 <- read.csv("data/MP46.csv")
+m60 <- read.csv("data/MP60.csv")
+```
+
+```{r}
+#remove unnecessary columns
+m46 <- m46[,c("StartTime", "THD1", "THD2", "THD3")]
+m60 <- m60[,c("StartTime", "THD1", "THD2", "THD3")]
+
+# Transforming date and time variables
+m46$StartTime <- as.POSIXct(m46$StartTime, format = "%d/%m/%Y %H:%M:%S")
+m60$StartTime <- as.POSIXct(m60$StartTime, format = "%d/%m/%Y %H:%M:%S")
+
+# Combining the dataset
+m46$type <- "m46"
+m60$type <- "m60"
+#df <- rbind(m46, m60)
+df <- m46
+df <- df[complete.cases(df),]
+
+# Adding time specific columns
+df$month <- month.abb[month(df$StartTime)]
+df$time  <- time(df$StartTime)
+df$day   <- day(df$StartTime)
+
+# Partitioning data by month
+df$monthorder <- 0
+df[df$month == 'Nov', c('monthorder')] <- seq(1, nrow(df[df$month == 'Nov',]), 1)
+df[df$month == 'Dec', c('monthorder')] <- seq(1, nrow(df[df$month == 'Dec',]), 1)
+df[df$month == 'Jan', c('monthorder')] <- seq(1, nrow(df[df$month == 'Jan',]), 1)
+df[df$month == 'Feb', c('monthorder')] <- seq(1, nrow(df[df$month == 'Feb',]), 1)
+df[df$month == 'Mar', c('monthorder')] <- seq(1, nrow(df[df$month == 'Mar',]), 1)
+df[df$month == 'Apr', c('monthorder')] <- seq(1, nrow(df[df$month == 'Apr',]), 1)
+df$month <- factor(df$month, c("Nov", "Dec", "Jan", "Feb", "Mar", "Apr")) #Ordering based on months
+
+# Partitioning data by day of the week
+df$wday <- wday(df$StartTime, label=TRUE)
+df$dayorder <- 0
+months = c('Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr')
+days = 1:31
+
+for (month in months){
+  for (day in days){
+    if (max(df[df$month==month,'day']) < day){
+      next
+    }
+    df[df$month == month & df$day == day, c('dayorder')] <- 1:nrow(df[df$month == month & df$day == day, ])
+  }
+}
+
+df$halfmonth <- df$month
+df$halfmonth <- ifelse(df$month == 'Nov' & df$day <= 15, 'Nov 1', df$halfmonth)
+df$halfmonth <- ifelse(df$month == 'Dec' & df$day <= 15, 'Dec 1', df$halfmonth)
+df$halfmonth <- ifelse(df$month == 'Jan' & df$day <= 15, 'Jan 1', df$halfmonth)
+df$halfmonth <- ifelse(df$month == 'Feb' & df$day <= 15, 'Feb 1', df$halfmonth)
+df$halfmonth <- ifelse(df$month == 'Mar' & df$day <= 15, 'Mar 1', df$halfmonth)
+df$halfmonth <- ifelse(df$month == 'Apr' & df$day <= 15, 'Apr 1', df$halfmonth)
+df$halfmonth <- ifelse(df$month == 'Nov' & df$day >  15, 'Nov 2', df$halfmonth)
+df$halfmonth <- ifelse(df$month == 'Dec' & df$day >  15, 'Dec 2', df$halfmonth)
+df$halfmonth <- ifelse(df$month == 'Jan' & df$day >  15, 'Jan 2', df$halfmonth)
+df$halfmonth <- ifelse(df$month == 'Feb' & df$day >  15, 'Feb 2', df$halfmonth)
+df$halfmonth <- ifelse(df$month == 'Mar' & df$day >  15, 'Mar 2', df$halfmonth)
+df$halfmonth <- ifelse(df$month == 'Apr' & df$day >  15, 'Apr 2', df$halfmonth)
+df$halfmonth <- factor(df$halfmonth, c("Nov 1", "Nov 2", "Dec 1", "Dec 2", "Jan 1", "Jan 2", "Feb 1", "Feb 2", "Mar 1", "Mar 2", "Apr 1", "Apr 2")) #Ordering based on months
+
+# Adding week number data
+df$week <- week(df$StartTime)
+```
+
+```{r}
+ggplot(data = df) + geom_line(aes(x=monthorder, y=THD1)) + facet_wrap(~month) + ggtitle("Variation of THD1 for each Month") + xlab("Time") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+
+```{r}
+ggplot(data = df) + geom_line(aes(x=monthorder, y=THD1, color = month), alpha = 0.7) + ggtitle("Variation of THD1 for all Months") + xlab("Time") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+```{r}
+ggplot(data = df[df$month=='Dec' | df$month=='Nov' | df$month == 'Jan' ,]) + geom_line(aes(x=monthorder, y=THD1, color = month), alpha = 0.7) + ggtitle("Variation of THD1 for November to January") + xlab("Time") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+
+```{r}
+ggplot(data = df[df$month=='Feb' | df$month=='Mar' | df$month == 'Apr' ,]) + geom_line(aes(x=monthorder, y=THD1, color = month), alpha = 0.7) + ggtitle("Variation of THD1 for February to April") + xlab("Time") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+```{r}
+ggplot(data = df) + geom_line(aes(x=dayorder, y=THD1, color = wday), alpha = 0.7) + facet_wrap(~halfmonth) + ggtitle("Variation of THD1 for November to January") + xlab("Time") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+```{r}
+ggplot(data = df[df$month=='Nov',]) + geom_line(aes(x=dayorder, y=THD1, color = wday), alpha = 0.7) + facet_wrap(~week) + ggtitle("Variation of THD in November") + xlab("Time") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+
+```{r}
+ggplot(data = df[df$month=='Dec',]) + geom_line(aes(x=dayorder, y=THD1, color = wday), alpha = 0.7) + facet_wrap(~week) + ggtitle("Variation of THD in December") + xlab("Time") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+```{r}
+ggplot(data = df[df$month=='Jan',]) + geom_line(aes(x=dayorder, y=THD1, color = wday), alpha = 0.7) + facet_wrap(~week) + ggtitle("Variation of THD in January") + xlab("Time") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+```{r}
+ggplot(data = df[df$month=='Feb',]) + geom_line(aes(x=dayorder, y=THD1, color = wday), alpha = 0.7) + facet_wrap(~week) + ggtitle("Variation of THD in February") + xlab("Time") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+```{r}
+ggplot(data = df[df$month=='Mar',]) + geom_line(aes(x=dayorder, y=THD1, color = wday), alpha = 0.7) + facet_wrap(~week) + ggtitle("Variation of THD in March") + xlab("Time") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+```{r}
+ggplot(data = df[df$month=='Apr',]) + geom_line(aes(x=dayorder, y=THD1, color = wday), alpha = 0.7) + facet_wrap(~week) + ggtitle("Variation of THD in April") + xlab("Time") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+```{r}
+ggplot(data = df) + geom_line(aes(x=dayorder, y=THD1, color = month), alpha = 0.7) + facet_wrap(~wday) + ggtitle("Variation of THD per weekday") + xlab("Time") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+

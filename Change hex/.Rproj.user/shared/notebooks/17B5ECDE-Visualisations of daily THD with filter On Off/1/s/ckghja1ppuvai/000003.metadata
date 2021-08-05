@@ -1,0 +1,1 @@
+{"conditions":[[1,"Removed 23087 rows containing non-finite values (stat_binhex)."],[1,"Removed 18 rows containing missing values (geom_hex)."],[1,"Removed 4032 rows containing missing values (geom_path)."]],"height":432.6328800988875,"size_behavior":0,"width":700.0000000000000}

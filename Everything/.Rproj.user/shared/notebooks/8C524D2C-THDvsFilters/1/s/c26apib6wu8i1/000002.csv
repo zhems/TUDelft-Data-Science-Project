@@ -1,0 +1,27 @@
+"0","```r
+m46$type = factor(m46$type)
+m46$StartTime <- as.POSIXct(m46$StartTime, format = \"%d/%m/%Y %H:%M\")
+attributes(m46$StartTime[1])
+```"
+"1","$`class`
+[1] \"POSIXct\" \"POSIXt\" 
+
+$tzone
+[1] \"\"
+"
+"0","```r
+m46 = m46[which(month.abb[month(m46$StartTime)]=='Apr'),]
+m60=m60bu
+m60$type = factor(m60$type)
+m60$StartTime <- as.POSIXct(m60$StartTime, format = \"%Y-%m-%d %H:%M:%S\")
+attributes(m60$StartTime[1])
+```"
+"1","$`class`
+[1] \"POSIXct\" \"POSIXt\" 
+
+$tzone
+[1] \"\"
+"
+"0","```r
+m60 = m60[which(month.abb[month(m60$StartTime)]=='Apr'),]
+```"

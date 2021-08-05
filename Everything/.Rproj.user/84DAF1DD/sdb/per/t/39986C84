@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1527086325525.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "39986C84",
+    "lastKnownWriteTime" : 6,
+    "last_content_update" : -2147483648,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "BEC78EE9",
+        "caption" : "m60overalltypecount",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=m60overalltypecount&cache_key=BEC78EE9",
+        "displayedObservations" : 6,
+        "environment" : "",
+        "object" : "m60overalltypecount",
+        "preview" : 0,
+        "totalObservations" : 6,
+        "variables" : 3
+    },
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

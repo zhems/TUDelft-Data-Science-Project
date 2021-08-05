@@ -1,0 +1,11 @@
+"0","```r
+m60plot = data.frame(t(m60summaryoverall))
+m60plot$name = rownames(m60plot)
+m60plot$name=str_pad(m60plot$name, 4, pad = \"0\")
+df2 <- melt(m60plot, id=c(\"name\"))
+types = unique(df2$variable)
+for (type in types){
+  print(
+ggplot(df2[df2$variable == type,],aes(x=name,y=value)) + geom_bar(stat=\"identity\", fill = \"dodgerblue\") + xlab(\"Filter Activation Combination\") + ylab(type) + ggtitle(paste(\"Average\", type)) + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = \"black\"))
+)}
+```"

@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1527342678057.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "290C64C0",
+    "lastKnownWriteTime" : 0,
+    "last_content_update" : -2147483648,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "3DCDEB2A",
+        "caption" : "combi0101",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=combi0101&cache_key=3DCDEB2A",
+        "displayedObservations" : 1,
+        "environment" : "",
+        "object" : "combi0101",
+        "preview" : 0,
+        "totalObservations" : 1,
+        "variables" : 0
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

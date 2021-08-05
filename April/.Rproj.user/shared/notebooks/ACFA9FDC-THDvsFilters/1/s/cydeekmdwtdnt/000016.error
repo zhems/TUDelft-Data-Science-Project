@@ -1,0 +1,1 @@
+{"frames":[],"message":"Error: unexpected '}' in:\n\"theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_t\n)}\"\n"}

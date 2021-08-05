@@ -1,0 +1,21 @@
+"0","```r
+
+dfB22 <- df[df$month == 'Nov' & df$day %in% c(2, 6, 12, 25),]
+temp <- df[df$month == 'Dec' & df$day %in% c(9),]
+dfB22 <- rbind(temp, dfB22)
+temp <- df[df$month == 'Jan' & df$day %in% c(2, 15, 22),]
+dfB22 <- rbind(temp, dfB22)
+temp <- df[df$month == 'Feb' & df$day %in% c(22, 23, 24, 25, 26, 27, 28),]
+dfB22 <- rbind(temp, dfB22)
+temp <- df[df$month == 'Mar' & df$day %in% c(1, 8, 10, 17, 22),]
+dfB22 <- rbind(temp, dfB22)
+
+ggplot(data = dfB22) + 
+  geom_tile(aes(x=dayorder, y =1.45, height = 0.3, fill=B11), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =1.15, height = 0.3, fill=B12), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =0.85, height = 0.3, fill=B21), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =0.55, height = 0.3, fill=B22), alpha=0.3) + 
+  geom_line(aes(x=dayorder, y=THD1, color = type)) + 
+  facet_wrap(~readdate) + ylim(0.4,1.6) + scale_fill_manual(name = \"Filter\", values = colors) + scale_color_manual(name = \"Point\", values = colors) +
+  ggtitle(paste(\"Daily THD1 when B22 is turned OFF\")) + xlab(\"Time\") + ylab(\"THD\") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = \"black\"))
+```"

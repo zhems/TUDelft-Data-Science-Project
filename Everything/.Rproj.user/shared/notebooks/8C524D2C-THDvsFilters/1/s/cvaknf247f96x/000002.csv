@@ -1,0 +1,6 @@
+"0","```r
+m46plot = data.frame(t(m46summaryoverall))
+m46plot$name = rownames(m46plot)
+m46plot$name=str_pad(m46plot$name, 4, pad = \"0\")
+ggplot(m46plot,aes(x=name,y=THD1)) + geom_bar(stat=\"identity\", fill = \"dodgerblue\") + xlab(\"Filter Activation Combination\") + ylab(\"THD1\") + ggtitle(\"Average THD1\") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = \"black\"))
+```"

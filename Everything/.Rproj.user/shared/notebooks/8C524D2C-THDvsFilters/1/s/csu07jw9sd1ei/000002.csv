@@ -1,0 +1,7 @@
+"0","```r
+df3 = m46plot
+df3$count = t(m46overalltypecount)/sum(m46overalltypecount)
+#+geom_line(aes(y=count),colour=\"brickred\") 
+#
+ggplot(df3,aes(x=name, group =1)) + geom_bar(aes(y=THD1),stat=\"identity\", fill = \"dodgerblue\") +geom_line(aes(y=count),colour=\"red\")+ xlab(\"Filter Activation Combination\") + ylab(\"THD1\") + ggtitle(\"Average THD1\")+ theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = \"black\")) 
+```"

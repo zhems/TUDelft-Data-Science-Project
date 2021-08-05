@@ -1,0 +1,19 @@
+"0","```r
+for (month in months){
+  colors <- c(\"lightpink\", \"white\", \"navy\", \"darkturquoise\")
+  names(colors) <- c(\"UIT\", \"IN\", \"m46\", \"m60\")
+  condition <- df$month==month & df$day < 16
+  print(
+  ggplot(data = df[condition,]) + 
+    geom_tile(aes(x=dayorder, y =1.45, height = 0.3, fill=B11), alpha=0.3) + 
+    geom_tile(aes(x=dayorder, y =1.15, height = 0.3, fill=B12), alpha=0.3) + 
+    geom_tile(aes(x=dayorder, y =0.85, height = 0.3, fill=B21), alpha=0.3) + 
+    geom_tile(aes(x=dayorder, y =0.55, height = 0.3, fill=B22), alpha=0.3) + 
+    geom_line(aes(x=dayorder, y=THD1, color = type)) + 
+    facet_wrap(~day) + ylim(0.4,1.6) + scale_fill_manual(name = \"Filter\", values = colors) + scale_color_manual(name = \"Point\", values = colors) +
+    ggtitle(paste(\"Variation of THD1 for\", month)) + xlab(\"Time\") + ylab(\"THD\") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = \"black\"))
+  )
+}
+```"
+"1","Ignoring unknown aesthetics: heightIgnoring unknown aesthetics: heightIgnoring unknown aesthetics: heightIgnoring unknown aesthetics: height
+"

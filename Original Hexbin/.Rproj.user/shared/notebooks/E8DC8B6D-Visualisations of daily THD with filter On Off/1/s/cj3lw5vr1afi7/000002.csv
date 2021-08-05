@@ -1,0 +1,8 @@
+"0","filtermonths <- c(""Oct"", ""Nov"", ""Dec"", ""Jan"", ""Feb"", ""Mar"", ""Apr"")"
+"0","plots <- list()"
+"0","i <- 1"
+"0","for (month in filtermonths){"
+"0","   plots[[i]] <- ggplot(data = df[df$B11month == month,]) + geom_point(aes(x=B11dif, y = THD1), color = ""dodgerblue"", alpha = 0.2) + facet_wrap(~B11) +    ggtitle(month) + xlab(""Time elasped in seconds"") + ylab(""THD1"") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = ""black"")) "
+"0","  i=i+1"
+"0","}"
+"0","grid.arrange(plots[[2]], plots[[3]], plots[[4]], plots[[5]], plots[[6]], plots[[7]], ncol=2, top = ""Filter B11"")"

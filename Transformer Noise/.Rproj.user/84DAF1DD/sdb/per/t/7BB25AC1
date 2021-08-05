@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "---\ntitle: \"Transformer Noise\"\nauthor: \"Zhems\"\ndate: \"4 May 2018\"\noutput: html_document\n---\n\n\n```{r cars}\n# Importing libraries and reading data\nlibrary(ggplot2)\nlibrary(gridExtra)\nlibrary(reshape)\nlibrary(lubridate)\nm46 <- read.csv(\"data/MP46.csv\")\nm60 <- read.csv(\"data/MP60.csv\")\nswitch <- read.csv(\"data/switching_data.csv\")\n```\n\n## Including Plots\n\nYou can also embed plots, for example:\n\n```{r pressure, echo=FALSE}\n# Transforming date and time variables\nm46$StartTime <- as.POSIXct(m46$StartTime, format = \"%d/%m/%Y %H:%M:%S\")\nm60$StartTime <- as.POSIXct(m60$StartTime, format = \"%d/%m/%Y %H:%M:%S\")\nswitch$datetime <- paste(switch[,1], switch$Time)\nswitch$datetime <- as.POSIXct(switch$datetime, format = \"%d/%m/%Y %H:%M:%S\")\nswitch$month <- month(switch$datetime)\nswitch[,1] <- NULL\nswitch$Time <- NULL\nswitch$datetime10mins <- floor_date(switch$datetime, \"10 minutes\")\n# Separating dataset based on filters\nB11 <- switch[switch$Element==\"MDC_MDC AC Filter 11 VS\",]\nB12 <- switch[switch$Element==\"MDC_MDC AC Filter 12 VS\",]\nB21 <- switch[switch$Element==\"MDC_MDC AC Filter 21 VS\",]\nB22 <- switch[switch$Element==\"MDC_MDC AC Filter 22 VS\",]\n\n# Adding name for filter as variable\nB11$name <- 'B11'\nB12$name <- 'B12'\nB21$name <- 'B21'\nB22$name <- 'B22'\n\n# Removing second of each repeated status\nB11 <- B11[seq(1, nrow(B11), 2),] \nB12 <- B12[seq(1, nrow(B12), 2),] \nB21 <- B21[seq(1, nrow(B21), 2),] \nB22 <- B22[seq(1, nrow(B22), 2),]\n\nB11$datetime<-B11$datetime10mins\n```\n\n```{r}\nB11[which(B11$status=='UIT'),7] = -1.0\nB11[which(B11$status=='IN'),7] = 0.4\nB12[which(B12$status=='UIT'),7] = -1.0\nB12[which(B12$status=='IN'),7] = 0.8\nB21[which(B21$status=='UIT'),7] = -1.0\nB21[which(B21$status=='IN'),7] = 1.2\nB22[which(B22$status=='UIT'),7] = -1.0\nB22[which(B22$status=='IN'),7] = 1.6\n#B11$meow <- ifelse(B11$status == 'UIT', -1.0, 0.4)\n```\n\n```{r}\ndf <- rbind(B11, B12)\ndf <- rbind(df, B21)\ndf <- rbind(df, B22)\n\ndf$month <- month.abb[month(df$datetime)]\ndf$month <- factor(df$month, c(\"Oct\", \"Nov\", \"Dec\", \"Jan\", \"Feb\", \"Mar\", \"Apr\")) #Ordering based on months\nmonths = c(\"Oct\", \"Nov\", \"Dec\", \"Jan\", \"Feb\", \"Mar\", \"Apr\")\nfor (month in months){\n  print(\n    ggplot(data=df[df$month==month,]) + geom_step(aes(x=datetime, y=V7, color = name)) + ggtitle(paste(\"Filters Activation during\", month)) + xlab(\"Time\") +ylab(\"On/Off\") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = \"black\")) + scale_color_manual(labels=c(\"B11\", \"B12\", \"B21\", \"B22\"), values = c(\"#66c2a5\", \"#fc8d62\", \"#8da0cb\", \"#e78ac3\"))+ ylim(-1.6, 1.6)\n    )\n}\n```\n\nNote that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.\n",
+    "created" : 1525438091706.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4239978694",
+    "id" : "7BB25AC1",
+    "lastKnownWriteTime" : 1525725983,
+    "last_content_update" : -2147483648,
+    "path" : "~/Downloads/WI4231 Mathematical Data Science/Transformer Noise/Zhems.Rmd",
+    "project_path" : "Zhems.Rmd",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

@@ -1,0 +1,248 @@
+---
+title: "Bayesian ridge regression and Bayesian lasso"
+author: "Frank van der Meulen (TU Delft)"
+date: "1 May 2015"
+output: pdf_document
+fontsize: 10pt
+fig_width: 7
+fig_height: 6
+---
+
+```{r, echo=FALSE,warning=FALSE}
+library(knitr)
+#opts_chunk$set(results="hide", fig.show="hide",warning=FALSE,message=FALSE)
+opts_chunk$set(warning=FALSE,message=FALSE)
+```
+
+
+# ILLUSTRATION OF THE FULL RIDGE AND LASSO REGULARISATION PATHS USING GLMNET
+
+The glmnet package contains many function for estimation of generalised linear models using $\ell_1$ and or $\ell_2$ regularisation. We illustrate it with a dataset that is available within R. 
+```{r}
+library(glmnet)
+library(lars)   # contains the diabetes data
+data(diabetes)
+d  <- diabetes
+
+lasfit <- glmnet(d$x,d$y,alpha=1)  # lasso
+ridfit <- glmnet(d$x,d$y,alpha=0)  # ridge
+
+plot(ridfit,lwd=2,xvar='lambda',label=TRUE)
+abline(0,0)
+plot(lasfit,lwd=2,xvar='lambda',label=TRUE)
+abline(0,0)
+
+# cross validation plot for lasso
+cvfit = cv.glmnet(d$x, d$y, alpha=1,nfolds=5) # 5-fold cv
+plot(cvfit)
+cvfit$lambda.min   # value of lambda that gives minimum cvm.
+cvfit$lambda.1se  # largest value of lambda such that error is within 1 standard error of the minimum.
+coef(lasfit,s=cvfit$lambda.min)
+coef(lasfit,s=cvfit$lambda.1se)
+```
+
+# ILLUSTRATION OF RIDGE, LASSO, BAYESIAN RIDGE AND BAYESIAN LASSO
+
+Install the monomvn package and call the library.
+```{r}
+library(monomvn)
+```
+
+The following function generates sparse data from the linear regression model:
+```{r}
+genSparseData <- function(n,p,beta0.nonzero,sd.noise)
+# generates the n x p design matrix with all elements drawn from a standard normal distribution
+# beta0 is the vector beta0.nonzero, augmented with zeros
+# a list containing (x, y, beta0) is returned, where
+#  y = x * beta0 + eps, 
+# where eps is a vector of independent normal random variables
+# with mean zero and st.dev equal to sd.noise
+{
+  r <- length(beta0.nonzero)
+  if (p< (r+2)) 
+  {   stop('p is too small in relation with the nr of nonzero elements in beta0.nonzero')
+  }  else  {
+     x <- matrix(rnorm(n*p),nrow=n)
+     beta0 <- c(beta0.nonzero, rep(0,p-r))
+     y <- x %*% beta0 + rnorm(n, sd=sd.noise)
+     list(x=x,y=y, beta0=beta0)  
+  }
+}  
+```
+
+
+# TEST CASE: n=25, p=500
+
+Generate the data
+```{r}
+set.seed(38)   # fix the seed of the RNG 
+d1 <- genSparseData(25,100,c(5, -3, 1, 0.2),.1)
+str(d1)
+```
+
+## Ordinary Least Squares regression
+
+As $p>n$ this will not work:
+```{r}
+reg.ols <- lm(d1$y ~ d1$x)
+summary(reg.ols)$coef[1:50]  # print first 50 coefs
+```
+
+## Ridge regression
+
+The default choice for setting the regularisation parameter is 10-fold cross-validation.
+```{r}
+rid <- regress(d1$x, d1$y, method="ridge")  
+# note that this function itself always automatically includes an intercept
+
+ridCoef <- rid$b   # vector of coefficients (note that an intercept is included!)
+ridCoef[1:15]      # print first 15 elements
+rid$lambda         # regularisation parameter
+```
+
+## Bayesian ridge regression
+
+```{r}
+ridBayes <- bridge(d1$x,d1$y,T=1000)
+BI <- 250   # choose a value for burnin
+plot(ridBayes,burnin=BI)
+ridBayesCoef <- cbind(ridBayes$mu, ridBayes$beta)[BI:T,]
+ridgeBayesMean <- colMeans(ridBayesCoef)
+ridgeBayesMedian <- apply(ridBayesCoef,2,median)
+results <- data.frame(truth=c(0,d1$beta0), ridge=rid$b, 
+                      Bridge.mean=ridgeBayesMean, 
+                      Bridge.median=ridgeBayesMedian)
+results[1:15,]
+```
+
+Here we have taken a fairly small number of iterations, if possible take more in real applications.
+
+Many results can be obtained from the summmary function
+```{r}
+?summary.blasso
+```
+
+For example, the estimated posterior probability that the individual components of the regression coefficients beta is nonzero is obtained from 
+```{r}
+bn0 <- summary(ridBayes)$bn0
+bn0[1:15]   # print the first 15 elements 
+```
+
+
+## Lasso regression
+
+```{r}
+las <- regress(d1$x, d1$y, method="lasso")
+lasCoef <- las$b
+lasCoef[1:15]
+lasLambda <- las$lambda
+lasLambda
+```
+
+## Bayesian lasso regression
+
+```{r}
+lasBayes <- blasso(d1$x,d1$y,T=1000)
+BI <- 250   # choose a value for burnin
+plot(lasBayes,burnin=BI)
+lasBayesCoef <- cbind(lasBayes$mu, lasBayes$beta)[BI:T,]
+lassoBayesMean <- colMeans(lasBayesCoef)
+lassoBayesMedian <- apply(lasBayesCoef,2,median)
+results <- data.frame(truth=c(0,d1$beta0), lasso=las$b, 
+                      Blasso.mean=lassoBayesMean, 
+                      Blasso.median=lassoBayesMedian)
+results[1:15,]
+```
+
+## Horseshoe regression
+
+```{r}
+hs <- bhs(d1$x,d1$y,T=1000)
+BI <- 250   # choose a value for burnin
+plot(hs,burnin=BI)
+hsCoef <- cbind(hs$mu, hs$beta)[BI:T,]
+hsMean <- colMeans(hsCoef)
+hsMedian <- apply(hsCoef,2,median)
+results <- data.frame(truth=c(0,d1$beta0),  
+                      hs.mean=hsMean, 
+                      hs.median=hsMedian)
+results[1:15,]
+```
+
+If you wish to make additional plots, consult the help page for the plotting function
+```{r}
+?plot.blasso
+```
+As an example, suppose for the Bayesian lasso we wish to make a traceplot for lambda:
+```{r}
+plot(lasBayes,burnin=BI,which='lambda')
+```
+Or plot the size of different models visited
+```{r}
+plot(lasBayes,burnin=BI,which='m')
+```
+
+# ILLUSTRATION OF RECOVERING A SPARSE SIGNAL
+
+Here is another illustration where we try to recover a sparse signal. We use both the (frequentist) lasso and horseshoe
+```{r}
+IT <- 1000
+BI <- 250
+
+# truth
+n <- 10
+y0 <- rep(0,n^2)
+y0[13:15] <- c(3,-2,5)
+y0[65] <- 3
+
+# observations
+y <- y0 + rnorm(n^2,0.1)
+
+# freq. lasso
+las <- regress(diag(n^2),y-mean(y),'lasso')
+lasCoef <- las$b[-1]
+
+# horseshoe
+hs <- bhs(X=diag(n^2),y,T=IT)
+hsPostMean <- colMeans(hs$beta[BI:IT,])
+hsPostMed <- apply(hs$beta[BI:IT,],2,median)
+par(mfrow=c(3,2))
+par(pty="s")
+image(matrix(y0,n),main='true',col=terrain.colors(100),zlim=c(-2,5))
+image(matrix(y,n),main='observed',col=terrain.colors(100),zlim=c(-2,5))
+image(matrix(lasCoef,n),main='freq lasso',col=terrain.colors(100),zlim=c(-2,5))
+image(matrix(hsPostMean,n),main='horseshoe (mean)',col=terrain.colors(100),zlim=c(-2,5))
+image(matrix(hsPostMed,n),main='horseshoe (med)',col=terrain.colors(100),zlim=c(-2,5))
+
+#data.frame(y0,y,lasCoef,hsCoef)
+```
+
+
+
+# ILLUSTRATION OF GIBBS SAMPLER FOR RIDGE REGRESSION
+
+First we call the bridge function, then we use some plots from the coda library. 
+With this library trace plots of the mcmc sampler can easilly be made.
+
+```{r}
+IT <- 1000 # nr of mcmc iterations
+BI <- 100  # nr of burnin iterations
+d1 <- genSparseData(25,10,c(5, -3, 1, 0.2),1)
+ridBayes <- bridge(d1$x,d1$y,T=IT,RJ=FALSE)
+plot(ridBayes, burnin=BI)  # boxplots of coefs
+plot(ridBayes, burnin=BI,which='s2')  # plots for s2 (variance) chain
+plot(ridBayes, burnin=BI,which='lambda2')  # plots for lambda2 chain
+
+library(coda)
+
+mc.ridBayes.coef <- mcmc(ridBayes$beta[BI:IT,1:3], start=BI)
+plot(mc.ridBayes.coef)
+
+mc.ridBayes.s2 <- mcmc(ridBayes$s2[BI:IT], start=BI)
+plot(mc.ridBayes.s2)
+
+mc.ridBayes.lambda2 <- mcmc(ridBayes$lambda2[BI:IT], start=BI)
+plot(mc.ridBayes.lambda2)
+```
+
+

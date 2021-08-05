@@ -1,0 +1,22 @@
+"0","```r
+dfnormal <- df[df$month == 'Nov' & df$day %in% c(1, 3, 4, 7, 8, 11, 18, 19, 20, 23, 24, 26, 27, 28),]
+temp <- df[df$month == 'Dec' & df$day %in% c(3, 4, 7, 8, 11, 18, 21, 24, 30, 31),]
+dfnormal <- rbind(temp, dfnormal)
+temp <- df[df$month == 'Jan' & df$day %in% c(1, 3, 12, 27, 29),]
+dfnormal <- rbind(temp, dfnormal)
+temp <- df[df$month == 'Feb' & df$day %in% c(4, 5, 12, 14, 16, 19, 21),]
+dfnormal <- rbind(temp, dfnormal)
+temp <- df[df$month == 'Mar' & df$day %in% c(2, 4, 5, 6, 11, 12, 15, 23, 24, 25, 26, 29),]
+dfnormal <- rbind(temp, dfnormal)
+temp <- df[df$month == 'Apr' & df$day %in% c(1,2),]
+dfnormal <- rbind(temp, dfnormal)
+
+ggplot(data = dfnormal) + 
+  geom_tile(aes(x=dayorder, y =1.45, height = 0.3, fill=B11), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =1.15, height = 0.3, fill=B12), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =0.85, height = 0.3, fill=B21), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =0.55, height = 0.3, fill=B22), alpha=0.3) + 
+  geom_line(aes(x=dayorder, y=THD1, color = type)) + 
+  facet_wrap(~readdate) + ylim(0.4,1.6) + scale_fill_manual(name = \"Filter\", values = colors) + scale_color_manual(name = \"Point\", values = colors) +
+  ggtitle(paste(\"Daily THD1 where B11, B12, B22 are ON\")) + xlab(\"Time\") + ylab(\"THD\") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = \"black\"))
+```"

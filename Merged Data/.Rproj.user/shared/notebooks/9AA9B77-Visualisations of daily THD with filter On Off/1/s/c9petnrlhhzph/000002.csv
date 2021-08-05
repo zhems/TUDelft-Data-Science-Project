@@ -1,0 +1,7 @@
+"0","```r
+df$B11dif=df$b11dif/3600
+
+```"
+"1","Error in `$<-.data.frame`(`*tmp*`, B11dif, value = numeric(0)) : 
+  replacement has 0 rows, data has 52116
+"

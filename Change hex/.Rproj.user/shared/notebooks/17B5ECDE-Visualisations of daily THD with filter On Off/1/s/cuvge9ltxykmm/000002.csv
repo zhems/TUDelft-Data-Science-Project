@@ -1,0 +1,14 @@
+"0","```r
+df$B11dif <- as.numeric(difftime(df$StartTime, df$B11time, units = 'secs'))
+df$B12dif <- as.numeric(difftime(df$StartTime, df$B12time, units = 'secs'))
+df$B21dif <- as.numeric(difftime(df$StartTime, df$B21time, units = 'secs'))
+df$B22dif <- as.numeric(difftime(df$StartTime, df$B22time, units = 'secs'))
+df$B11month <- month.abb[month(df$B11time)]
+df$B12month <- month.abb[month(df$B12time)]
+df$B21month <- month.abb[month(df$B21time)]
+df$B22month <- month.abb[month(df$B22time)]
+df$B11dif=df$B11dif/3600
+df$B12dif=df$B12dif/3600
+df$B21dif=df$B21dif/3600
+df$B22dif=df$B22dif/3600
+```"

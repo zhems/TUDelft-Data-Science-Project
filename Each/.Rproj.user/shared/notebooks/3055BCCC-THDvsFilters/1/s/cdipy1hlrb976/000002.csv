@@ -1,0 +1,4 @@
+"0","m46$type = factor(m46$type)"
+"0","m46$StartTime <- as.POSIXct(m46$StartTime, format = ""%d/%m/%Y %H:%M"")"
+"0","m60$type = factor(m60$type)"
+"0","m60$StartTime <- as.POSIXct(m60$StartTime, format = ""%Y-%m-%d %H:%M:%S"")"

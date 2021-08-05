@@ -1,0 +1,6 @@
+"0","df1 <- melt(m46plot, id=c(""name""))"
+"0","types = unique(df1$variable)"
+"0","for (type in types){"
+"0","  print("
+"0","ggplot(df1[df1$variable == type,],aes(x=name,y=value)) + geom_bar(stat=""identity"", fill = ""dodgerblue"") + xlab(""Filter Activation Combination"") + ylab(type) + ggtitle(paste(""Average"", type)) + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = ""black""))"
+"0",")}"

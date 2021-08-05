@@ -1,0 +1,188 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+# Importing libraries and reading data
+library(ggplot2)
+library(gridExtra)
+library(reshape)
+library(lubridate)
+library(plyr)
+library(dplyr)
+library(stringr)
+m46 <- read.csv("data/46combined.csv")
+m60 <- read.csv("data/60combined.csv")
+```
+
+```{r Change IN to 1 and UIT to 0}
+m46$B11 = ifelse(m46$B11=="IN",1,0)
+m46$B12 = ifelse(m46$B12=="IN",1,0)
+m46$B21 = ifelse(m46$B21=="IN",1,0)
+m46$B22 = ifelse(m46$B22=="IN",1,0)
+m60$B11 = ifelse(m60$B11=="IN",1,0)
+m60$B12 = ifelse(m60$B12=="IN",1,0)
+m60$B21 = ifelse(m60$B21=="IN",1,0)
+m60$B22 = ifelse(m60$B22=="IN",1,0)
+```
+
+```{r Assign "type" to each permutation}
+# Assign numbers to each permutation of on/off
+m46$type = 0
+for(i in 1:nrow(m46)) {
+  if(m46$B11[i]==1)
+    m46$type[i] = m46$type[i] +1000
+  if(m46$B12[i]==1)
+    m46$type[i] = m46$type[i] +100
+  if(m46$B21[i]==1)
+    m46$type[i] = m46$type[i] +10
+  if(m46$B22[i]==1)
+    m46$type[i] = m46$type[i] +1
+}
+
+m60$type = 0
+for(i in 1:nrow(m60)) {
+  if(m60$B11[i]==1)
+    m60$type[i] = m60$type[i] +1000
+  if(m60$B12[i]==1)
+    m60$type[i] = m60$type[i] +100
+  if(m60$B21[i]==1)
+    m60$type[i] = m60$type[i] +10
+  if(m60$B22[i]==1)
+    m60$type[i] = m60$type[i] +1
+}
+m46plot$name = rownames(m46plot)
+m46plot$name=str_pad(m46plot$name, 4, pad = "0")
+m60plot$name = rownames(m60plot)
+m60plot$name=str_pad(m60plot$name, 4, pad = "0")
+  
+write.csv(m46,'m46labelled.csv')
+write.csv(m60,'m60labelled.csv')
+```
+
+
+```{r Factor keep specific months}
+m46$type = factor(m46$type)
+
+m46$StartTime <- as.POSIXct(m46$StartTime, format = "%d/%m/%Y %H:%M")
+
+m60=m60bu
+m60$type = factor(m60$type)
+m60$StartTime <- as.POSIXct(m60$StartTime, format = "%Y-%m-%d %H:%M:%S")
+```
+
+```{r}
+
+m46overall = m46[which(month.abb[month(m46$StartTime)]!='Apr'),]
+m60overall = m60[which(month.abb[month(m60$StartTime)]!='Apr'),]
+```
+
+
+```{r Create summary table}
+m46overalltypecount = data.frame(t(summary(m46overall$type)))
+m60overalltypecount = data.frame(t(summary(m60overall$type)))
+names(m46overalltypecount)=c(0,1,100,101,111,1001,1100,1101,1111)
+names(m60overalltypecount)=c(0,1,100,101,111,1001,1100,1101,1111)
+
+m46summaryoverall=tapply(m46$THD1,m46$type,mean)
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$THD2,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$THD3,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H1_1,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H2_1,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H3_1,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H5_1,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H7_1,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H1_2,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H2_2,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H3_2,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H5_2,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H7_2,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H1_3,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H2_3,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H3_3,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H5_3,m46$type,mean))
+m46summaryoverall=rbind(m46summaryoverall,tapply(m46$H7_3,m46$type,mean))
+
+m60summaryoverall=tapply(m60$THD1,m60$type,mean)
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$THD2,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$THD3,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H1_1,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H2_1,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H3_1,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H5_1,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H7_1,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H1_2,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H2_2,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H3_2,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H5_2,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H7_2,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H1_3,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H2_3,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H3_3,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H5_3,m60$type,mean))
+m60summaryoverall=rbind(m60summaryoverall,tapply(m60$H7_3,m60$type,mean))
+
+tablenames = c('THD1','THD2','THD3','H1_1','H2_1','H3_1','H5_1','H7_1','H1_2','H2_2','H3_2','H5_2','H7_2',
+               'H1_3','H2_3','H3_3','H5_3','H7_3')
+rownames(m46summaryoverall) = tablenames
+rownames(m60summaryoverall) = tablenames
+
+
+m46overallrawmean = as.matrix(m46summaryoverall) %*% t(as.matrix(m46overalltypecount))
+m60overallrawmean = as.matrix(m60summaryoverall) %*% t(as.matrix(m60overalltypecount))
+```
+
+```{r Plots}
+
+m46plot = data.frame(t(m46summaryoverall))
+m46plot$name = rownames(m46plot)
+m46plot$name=str_pad(m46plot$name, 4, pad = "0")
+
+
+ggplot(m46plot,aes(x=name,y=THD1)) + geom_bar(stat="identity", fill = "dodgerblue") + xlab("Filter Activation Combination") + ylab("THD1") + ggtitle("Average THD1") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+
+```{r}
+df1 <- melt(m46plot, id=c("name"))
+types = unique(df1$variable)
+for (type in types){
+  print(
+ggplot(df1[df1$variable == type,],aes(x=name,y=value)) + geom_bar(stat="identity", fill = "dodgerblue") + xlab("Filter Activation Combination") + ylab(type) + ggtitle(paste("Average", type)) + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+)}
+```
+
+```{r}
+df3 = m46plot
+df3$count = t(m46overalltypecount)/sum(m46overalltypecount)
+#+geom_line(aes(y=count),colour="brickred") 
+#
+
+ggplot(df3,aes(x=name, group =1)) + geom_bar(aes(y=THD1),stat="identity", fill = "dodgerblue") +geom_line(aes(y=count),colour="red")+ xlab("Filter Activation Combination") + ylab("THD1") + ggtitle("Average THD1")+ theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black")) 
+```
+
+
+```{r}
+m60plot = data.frame(t(m60summaryoverall))
+m60plot$name = rownames(m60plot)
+m60plot$name=str_pad(m60plot$name, 4, pad = "0")
+
+df2 <- melt(m60plot, id=c("name"))
+types = unique(df2$variable)
+for (type in types){
+  print(
+ggplot(df2[df2$variable == type,],aes(x=name,y=value)) + geom_bar(stat="identity", fill = "dodgerblue") + xlab("Filter Activation Combination") + ylab(type) + ggtitle(paste("Average", type)) + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+)}
+```
+
+```{r}
+df3 <- m46[,c('THD1','THD2','THD3','H1_1','H2_1','H3_1','H5_1','H7_1','H1_2','H2_2','H3_2','H5_2','H7_2',
+               'H1_3','H2_3','H3_3','H5_3','H7_3', 'type')]
+df3 <- melt(df3, id=c("type"))
+types <- unique(df3$variable)
+for (type in types){
+  print(
+ggplot(data = df3[df3$variable==type,]) + geom_violin(aes(x=type, y = value, fill = type)) + xlab("Filter Activation Combination") + ylab(type) + ggtitle(paste("Violin plot of", type)) + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+)}
+```
+

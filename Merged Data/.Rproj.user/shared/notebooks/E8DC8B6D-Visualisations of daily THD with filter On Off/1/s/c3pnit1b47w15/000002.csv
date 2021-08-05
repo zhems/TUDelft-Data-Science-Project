@@ -1,0 +1,3 @@
+"0","df$readdate <- paste(df$month, df$day)"
+"0","order <- unique(df$readdate)"
+"0","df$readdate <- factor(df$readdate, order)"

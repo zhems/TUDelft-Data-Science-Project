@@ -1,0 +1,32 @@
+"0","```r
+# Assign numbers to each permutation of on/off
+m46$type = 0
+for(i in 1:nrow(m46)) {
+  if(m46$B11[i]==1)
+    m46$type[i] = m46$type[i] +1000
+  if(m46$B12[i]==1)
+    m46$type[i] = m46$type[i] +100
+  if(m46$B21[i]==1)
+    m46$type[i] = m46$type[i] +10
+  if(m46$B22[i]==1)
+    m46$type[i] = m46$type[i] +1
+}
+m60$type = 0
+for(i in 1:nrow(m60)) {
+  if(m60$B11[i]==1)
+    m60$type[i] = m60$type[i] +1000
+  if(m60$B12[i]==1)
+    m60$type[i] = m60$type[i] +100
+  if(m60$B21[i]==1)
+    m60$type[i] = m60$type[i] +10
+  if(m60$B22[i]==1)
+    m60$type[i] = m60$type[i] +1
+}
+m46plot$name = rownames(m46plot)
+m46plot$name=str_pad(m46plot$name, 4, pad = \"0\")
+m46plot$name = rownames(m46plot)
+m46plot$name=str_pad(m46plot$name, 4, pad = \"0\")
+  
+write.csv(m46,'m46labelled.csv')
+write.csv(m60,'m60labelled.csv')
+```"

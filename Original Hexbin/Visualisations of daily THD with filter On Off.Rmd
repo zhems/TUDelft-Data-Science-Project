@@ -1,0 +1,331 @@
+---
+title: "Daily THD visualisation with Filter on off"
+output: html_notebook
+---
+```{r}
+# Importing libraries and reading data
+library(ggplot2)
+library(gridExtra)
+library(reshape)
+library(lubridate)
+library(zoo)
+library(plyr)
+library(tidyr)
+library(hexbin)
+m46 <- read.csv("data/combined/46combined.csv")
+m60 <- read.csv("data/combined/60combined.csv")
+```
+```{r}
+# Transforming date and time variables
+m46$StartTime <- as.POSIXct(m46$StartTime, format = "%d/%m/%Y %H:%M")
+m60$StartTime <- as.POSIXct(m60$StartTime, format = "%Y-%m-%d %H:%M:%S")
+m46$B11time <- as.POSIXct(m46$B11time, format = "%d/%m/%Y %H:%M")
+m60$B11time <- as.POSIXct(m60$B11time, format = "%Y-%m-%d %H:%M:%S")
+m46$B12time <- as.POSIXct(m46$B12time, format = "%d/%m/%Y %H:%M")
+m60$B12time <- as.POSIXct(m60$B12time, format = "%Y-%m-%d %H:%M:%S")
+m46$B21time <- as.POSIXct(m46$B21time, format = "%d/%m/%Y %H:%M")
+m60$B21time <- as.POSIXct(m60$B21time, format = "%Y-%m-%d %H:%M:%S")
+m46$B22time <- as.POSIXct(m46$B22time, format = "%d/%m/%Y %H:%M")
+m60$B22time <- as.POSIXct(m60$B22time, format = "%Y-%m-%d %H:%M:%S")
+
+# Combining the dataset
+m46$type <- "m46"
+m60$type <- "m60"
+
+# Adding time specific columns
+m46$month <- month.abb[month(m46$StartTime)]
+m46$time  <- time(m46$StartTime)
+m46$day   <- day(m46$StartTime)
+
+m60$month <- month.abb[month(m60$StartTime)]
+m60$time  <- time(m60$StartTime)
+m60$day   <- day(m60$StartTime)
+
+# Partitioning data by month
+m46$monthorder <- 0
+m46[m46$month == 'Nov', c('monthorder')] <- seq(1, nrow(m46[m46$month == 'Nov',]), 1)
+m46[m46$month == 'Dec', c('monthorder')] <- seq(1, nrow(m46[m46$month == 'Dec',]), 1)
+m46[m46$month == 'Jan', c('monthorder')] <- seq(1, nrow(m46[m46$month == 'Jan',]), 1)
+m46[m46$month == 'Feb', c('monthorder')] <- seq(1, nrow(m46[m46$month == 'Feb',]), 1)
+m46[m46$month == 'Mar', c('monthorder')] <- seq(1, nrow(m46[m46$month == 'Mar',]), 1)
+m46[m46$month == 'Apr', c('monthorder')] <- seq(1, nrow(m46[m46$month == 'Apr',]), 1)
+m46$month <- factor(m46$month, c("Nov", "Dec", "Jan", "Feb", "Mar", "Apr")) #Ordering based on months
+
+m60$monthorder <- 0
+m60[m60$month == 'Nov', c('monthorder')] <- seq(1, nrow(m60[m60$month == 'Nov',]), 1)
+m60[m60$month == 'Dec', c('monthorder')] <- seq(1, nrow(m60[m60$month == 'Dec',]), 1)
+m60[m60$month == 'Jan', c('monthorder')] <- seq(1, nrow(m60[m60$month == 'Jan',]), 1)
+m60[m60$month == 'Feb', c('monthorder')] <- seq(1, nrow(m60[m60$month == 'Feb',]), 1)
+m60[m60$month == 'Mar', c('monthorder')] <- seq(1, nrow(m60[m60$month == 'Mar',]), 1)
+m60[m60$month == 'Apr', c('monthorder')] <- seq(1, nrow(m60[m60$month == 'Apr',]), 1)
+m60$month <- factor(m60$month, c("Nov", "Dec", "Jan", "Feb", "Mar", "Apr")) #Ordering based on months
+
+# Partitioning data by day of the week
+m46$wday <- wday(m46$StartTime, label=TRUE)
+m46$dayorder <- 0
+months = c('Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr')
+days = 1:31
+for (month in months){
+  for (day in days){
+    if (max(m46[m46$month==month,'day']) < day){
+      next
+    }
+    m46[m46$month == month & m46$day == day, c('dayorder')] <- 1:nrow(m46[m46$month == month & m46$day == day, ])
+  }
+}
+
+m60$wday <- wday(m60$StartTime, label=TRUE)
+m60$dayorder <- 0
+months = c('Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr')
+days = 1:31
+for (month in months){
+  for (day in days){
+    if (max(m60[m60$month==month,'day']) < day){
+      next
+    }
+    m60[m60$month == month & m60$day == day, c('dayorder')] <- 1:nrow(m60[m60$month == month & m60$day == day, ])
+  }
+}
+
+# Adding week number data
+m46$week <- week(m46$StartTime)
+m60$week <- week(m60$StartTime)
+
+# combining datasets
+df <- rbind(m46, m60)
+```
+```{r}
+for (month in months){
+  colors <- c("lightpink", "white", "navy", "darkturquoise")
+  names(colors) <- c("UIT", "IN", "m46", "m60")
+  condition <- df$month==month & df$day < 16
+  print(
+  ggplot(data = df[condition,]) + 
+    geom_tile(aes(x=dayorder, y =1.45, height = 0.3, fill=B11), alpha=0.3) + 
+    geom_tile(aes(x=dayorder, y =1.15, height = 0.3, fill=B12), alpha=0.3) + 
+    geom_tile(aes(x=dayorder, y =0.85, height = 0.3, fill=B21), alpha=0.3) + 
+    geom_tile(aes(x=dayorder, y =0.55, height = 0.3, fill=B22), alpha=0.3) + 
+    geom_line(aes(x=dayorder, y=THD1, color = type)) + 
+    facet_wrap(~day) + ylim(0.4,1.6) + scale_fill_manual(name = "Filter", values = colors) + scale_color_manual(name = "Point", values = colors) +
+    ggtitle(paste("Variation of THD1 for", month)) + xlab("Time") + ylab("THD") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+  )
+}
+```
+
+```{r}
+for (month in months){
+  colors <- c("lightpink", "white", "navy", "darkturquoise")
+  names(colors) <- c("UIT", "IN", "m46", "m60")
+  condition <- df$month==month & df$day >=16
+  print(
+  ggplot(data = df[condition,]) + 
+    geom_tile(aes(x=dayorder, y =1.45, height = 0.3, fill=B11), alpha=0.3) + 
+    geom_tile(aes(x=dayorder, y =1.15, height = 0.3, fill=B12), alpha=0.3) + 
+    geom_tile(aes(x=dayorder, y =0.85, height = 0.3, fill=B21), alpha=0.3) + 
+    geom_tile(aes(x=dayorder, y =0.55, height = 0.3, fill=B22), alpha=0.3) + 
+    geom_line(aes(x=dayorder, y=THD1, color = type)) + 
+    facet_wrap(~day) + ylim(0.4,1.6) + scale_fill_manual(name = "Filter", values = colors) + scale_color_manual(name = "Point", values = colors) +
+    ggtitle(paste("Variation of THD1 for", month)) + xlab("Time") + ylab("THD") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+  )
+}
+```
+
+```{r}
+df$readdate <- paste(df$month, df$day)
+order <- unique(df$readdate)
+df$readdate <- factor(df$readdate, order)
+```
+```{r}
+dfnormal <- df[df$month == 'Nov' & df$day %in% c(1, 3, 4, 7, 8, 11, 18, 19, 20, 23, 24, 26, 27, 28),]
+temp <- df[df$month == 'Dec' & df$day %in% c(3, 4, 7, 8, 11, 18, 21, 24, 30, 31),]
+dfnormal <- rbind(temp, dfnormal)
+temp <- df[df$month == 'Jan' & df$day %in% c(1, 3, 12, 27, 29),]
+dfnormal <- rbind(temp, dfnormal)
+temp <- df[df$month == 'Feb' & df$day %in% c(4, 5, 12, 14, 16, 19, 21),]
+dfnormal <- rbind(temp, dfnormal)
+temp <- df[df$month == 'Mar' & df$day %in% c(2, 4, 5, 6, 11, 12, 15, 23, 24, 25, 26, 29),]
+dfnormal <- rbind(temp, dfnormal)
+temp <- df[df$month == 'Apr' & df$day %in% c(1,2),]
+dfnormal <- rbind(temp, dfnormal)
+
+ggplot(data = dfnormal) + 
+  geom_tile(aes(x=dayorder, y =1.45, height = 0.3, fill=B11), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =1.15, height = 0.3, fill=B12), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =0.85, height = 0.3, fill=B21), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =0.55, height = 0.3, fill=B22), alpha=0.3) + 
+  geom_line(aes(x=dayorder, y=THD1, color = type)) + 
+  facet_wrap(~readdate) + ylim(0.4,1.6) + scale_fill_manual(name = "Filter", values = colors) + scale_color_manual(name = "Point", values = colors) +
+  ggtitle(paste("Daily THD1 where B11, B12, B22 are ON")) + xlab("Time") + ylab("THD") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+```{r}
+
+dfB22 <- df[df$month == 'Nov' & df$day %in% c(2, 6, 12, 25),]
+temp <- df[df$month == 'Dec' & df$day %in% c(9),]
+dfB22 <- rbind(temp, dfB22)
+temp <- df[df$month == 'Jan' & df$day %in% c(2, 15, 22),]
+dfB22 <- rbind(temp, dfB22)
+temp <- df[df$month == 'Feb' & df$day %in% c(22, 23, 24, 25, 26, 27, 28),]
+dfB22 <- rbind(temp, dfB22)
+temp <- df[df$month == 'Mar' & df$day %in% c(1, 8, 10, 17, 22),]
+dfB22 <- rbind(temp, dfB22)
+
+ggplot(data = dfB22) + 
+  geom_tile(aes(x=dayorder, y =1.45, height = 0.3, fill=B11), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =1.15, height = 0.3, fill=B12), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =0.85, height = 0.3, fill=B21), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =0.55, height = 0.3, fill=B22), alpha=0.3) + 
+  geom_line(aes(x=dayorder, y=THD1, color = type)) + 
+  facet_wrap(~readdate) + ylim(0.4,1.6) + scale_fill_manual(name = "Filter", values = colors) + scale_color_manual(name = "Point", values = colors) +
+  ggtitle(paste("Daily THD1 when B22 is turned OFF")) + xlab("Time") + ylab("THD") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+```{r}
+ggplot(data = dfB22) + geom_density(aes(x=THD1, fill = B22), alpha = 0.2) + facet_wrap(~type) + ggtitle("Density comparison of B22 ON and OFF")
+```
+```{r}
+dfB12 <- df[df$month == 'Nov' & df$day %in% c(5, 9, 13, 21, 29),]
+temp <- df[df$month == 'Jan' & df$day %in% c(11, 14, 21),]
+dfB12 <- rbind(temp, dfB12)
+temp <- df[df$month == 'Feb' & df$day %in% c(2, 17),]
+dfB12 <- rbind(temp, dfB12)
+temp <- df[df$month == 'Mar' & df$day %in% c(13, 16, 21, 28),]
+dfB12 <- rbind(temp, dfB12)
+
+ggplot(data = dfB12) + 
+  geom_tile(aes(x=dayorder, y =1.45, height = 0.3, fill=B11), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =1.15, height = 0.3, fill=B12), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =0.85, height = 0.3, fill=B21), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =0.55, height = 0.3, fill=B22), alpha=0.3) + 
+  geom_line(aes(x=dayorder, y=THD1, color = type)) + 
+  facet_wrap(~readdate) + ylim(0.4,1.6) + scale_fill_manual(name = "Filter", values = colors) + scale_color_manual(name = "Point", values = colors) +
+  ggtitle(paste("Daily THD1 when B12 is turned OFF")) + xlab("Time") + ylab("THD") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+```{r}
+ggplot(data = dfB12) + geom_density(aes(x=THD1, fill = B12), alpha = 0.2) + facet_wrap(~type) + ggtitle("Density comparison of B12 ON and OFF")
+```
+```{r}
+dfB12B22 <- df[df$month == 'Nov' & df$day %in% c(30),]
+temp <- df[df$month == 'Dec' & df$day %in% c(1, 5, 10, 17),]
+dfB12B22 <- rbind(temp, dfB12B22)
+temp <- df[df$month == 'Jan' & df$day %in% c(6, 8),]
+dfB12B22 <- rbind(temp, dfB12B22)
+temp <- df[df$month == 'Feb' & df$day %in% c(3, 11, 13, 18, 20),]
+dfB12B22 <- rbind(temp, dfB12B22)
+temp <- df[df$month == 'Mar' & df$day %in% c(3, 27, 30, 31),]
+dfB12B22 <- rbind(temp, dfB12B22)
+
+ggplot(data = dfB12B22) + 
+  geom_tile(aes(x=dayorder, y =1.45, height = 0.3, fill=B11), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =1.15, height = 0.3, fill=B12), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =0.85, height = 0.3, fill=B21), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =0.55, height = 0.3, fill=B22), alpha=0.3) + 
+  geom_line(aes(x=dayorder, y=THD1, color = type)) + 
+  facet_wrap(~readdate) + ylim(0.4,1.6) + scale_fill_manual(name = "Filter", values = colors) + scale_color_manual(name = "Point", values = colors) +
+  ggtitle(paste("Daily THD1 when B12 and B22 is turned OFF")) + xlab("Time") + ylab("THD") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+```
+```{r}
+
+dffilter <- df[df$month == 'Nov' & df$day %in% c(10, 14, 15, 16, 22),]
+temp <- df[df$month == 'Dec' & df$day %in% c(2, 6, 12, 13, 14, 15, 16, 19, 20, 22, 23, 25, 26, 27, 28, 29),]
+dffilter <- rbind(temp, dffilter)
+temp <- df[df$month == 'Jan' & df$day %in% c(4, 5, 7, 9, 10, 13, 16, 17, 18, 19, 20, 23, 24, 25, 26, 28, 30, 31),]
+dffilter <- rbind(temp, dffilter)
+temp <- df[df$month == 'Feb' & df$day %in% c(1, 6, 7, 8, 9, 10, 15),]
+dffilter <- rbind(temp, dffilter)
+temp <- df[df$month == 'Mar' & df$day %in% c(7, 9, 14, 18, 19, 20),]
+dffilter <- rbind(temp, dffilter)
+```
+```{r}
+ggplot(data = dffilter) + 
+  geom_tile(aes(x=dayorder, y =1.45, height = 0.3, fill=B11), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =1.15, height = 0.3, fill=B12), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =0.85, height = 0.3, fill=B21), alpha=0.3) + 
+  geom_tile(aes(x=dayorder, y =0.55, height = 0.3, fill=B22), alpha=0.3) + 
+  geom_line(aes(x=dayorder, y=THD1, color = type)) + 
+  facet_wrap(~readdate) + ylim(0.4,1.6) + scale_fill_manual(name = "Filter", values = colors) + scale_color_manual(name = "Point", values = colors) +
+  ggtitle(paste("Daily THD1 with filters")) + xlab("Time") + ylab("THD") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+
+
+```
+
+
+```{r}
+df$B11dif <- as.numeric(difftime(df$StartTime, df$B11time, units = 'secs'))
+df$B12dif <- as.numeric(difftime(df$StartTime, df$B12time, units = 'secs'))
+df$B21dif <- as.numeric(difftime(df$StartTime, df$B21time, units = 'secs'))
+df$B22dif <- as.numeric(difftime(df$StartTime, df$B22time, units = 'secs'))
+
+df$B11month <- month.abb[month(df$B11time)]
+df$B12month <- month.abb[month(df$B12time)]
+df$B21month <- month.abb[month(df$B21time)]
+df$B22month <- month.abb[month(df$B22time)]
+
+df$B11dif=df$B11dif/3600
+df$B12dif=df$B12dif/3600
+df$B21dif=df$B21dif/3600
+df$B22dif=df$B22dif/3600
+```
+
+
+```{r}
+ggplot(data=df[df$type=='m46',],aes(x=B11dif,y=THD1)) + geom_hex(bins=40) + theme_bw() + facet_wrap(~B11) + xlab('Time Elapsed (in hours)') + ggtitle('B11') + theme(plot.title = element_text(hjust = 0.5))
+ggplot(data=df[df$type=='m46',],aes(x=B12dif,y=THD1)) + geom_hex(bins=40) + theme_bw() + facet_wrap(~B12) + xlab('Time Elapsed (in hours)') + ggtitle('B12') + theme(plot.title = element_text(hjust = 0.5))
+ggplot(data=df[df$type=='m46',],aes(x=B21dif,y=THD1)) + geom_hex(bins=40) + theme_bw() + facet_wrap(~B21) + xlab('Time Elapsed (in hours)') + ggtitle('B21') + theme(plot.title = element_text(hjust = 0.5))
+ggplot(data=df[df$type=='m46',],aes(x=B22dif,y=THD1)) + geom_hex(bins=40) + theme_bw() + facet_wrap(~B22) + xlab('Time Elapsed (in hours)') + ggtitle('B22') + theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(data=df[df$type=='m60',],aes(x=B11dif,y=THD1)) + geom_hex(bins=40) + theme_bw() + facet_wrap(~B11) + xlab('Time Elapsed (in hours)') + ggtitle('B11') + theme(plot.title = element_text(hjust = 0.5))
+ggplot(data=df[df$type=='m60',],aes(x=B12dif,y=THD1)) + geom_hex(bins=40) + theme_bw() + facet_wrap(~B12) + xlab('Time Elapsed (in hours)') + ggtitle('B12') + theme(plot.title = element_text(hjust = 0.5))
+ggplot(data=df[df$type=='m60',],aes(x=B21dif,y=THD1)) + geom_hex(bins=40) + theme_bw() + facet_wrap(~B21) + xlab('Time Elapsed (in hours)') + ggtitle('B21') + theme(plot.title = element_text(hjust = 0.5))
+ggplot(data=df[df$type=='m60',],aes(x=B22dif,y=THD1)) + geom_hex(bins=40) + theme_bw() + facet_wrap(~B22) + xlab('Time Elapsed (in hours)') + ggtitle('B22') + theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+ggplot(data=df[df$B11=="UIT",],aes(x=B11dif,y=THD1)) + geom_hex(bins=50) + theme_bw() + facet_wrap(~type)
+ggplot(data=df[df$B12=="UIT",],aes(x=B12dif,y=THD1)) + geom_hex(bins=50) + theme_bw() + facet_wrap(~type)
+ggplot(data=df[df$B21=="UIT",],aes(x=B21dif,y=THD1)) + geom_hex(bins=50) + theme_bw() + facet_wrap(~type)
+ggplot(data=df[df$B22=="UIT",],aes(x=B22dif,y=THD1)) + geom_hex(bins=50) + theme_bw() + facet_wrap(~type)
+```
+
+
+```{r}
+filtermonths <- c("Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr")
+plots <- list()
+i <- 1
+for (month in filtermonths){
+   plots[[i]] <- ggplot(data = df[df$B11month == month,]) + geom_point(aes(x=B11dif, y = THD1), color = "dodgerblue", alpha = 0.2) + facet_wrap(~B11) +    ggtitle(month) + xlab("Time elasped in seconds") + ylab("THD1") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black")) 
+  i=i+1
+}
+grid.arrange(plots[[2]], plots[[3]], plots[[4]], plots[[5]], plots[[6]], plots[[7]], ncol=2, top = "Filter B11")
+```
+
+```{r}
+plots <- list()
+i <- 1
+for (month in filtermonths){
+   plots[[i]] <- ggplot(data = df[df$B12month == month,]) + geom_point(aes(x=B12dif, y = THD1), color = "dodgerblue", alpha = 0.2) + facet_wrap(~B12) + ggtitle(month) + xlab("Time elasped in seconds") + ylab("THD1") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black"))
+  i=i+1
+}
+grid.arrange(plots[[2]], plots[[3]], plots[[4]], plots[[5]], plots[[6]], plots[[7]], ncol=2, top = "Filter B12")
+```
+```{r}
+filtermonths1 <- c("Oct", "Nov", "Feb", "Mar", "Apr")
+plots <- list()
+i <- 1
+for (month in filtermonths1){
+  plots[[i]] <- ggplot(data = df[df$B21month == month,]) + geom_point(aes(x=B21dif, y = THD1), color = "dodgerblue", alpha = 0.2) + facet_wrap(~B21) +    ggtitle(month) + xlab("Time elasped in seconds") + ylab("THD1") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black")) 
+  i=i+1
+}
+grid.arrange(plots[[2]], plots[[3]], plots[[4]], plots[[5]], ncol=2, top = "Filter B21")
+```
+
+```{r}
+plots <- list()
+i <- 1
+for (month in filtermonths){
+  plots[[i]] <-ggplot(data = df[df$B22month == month,]) + geom_point(aes(x=B22dif, y = THD1), color = "dodgerblue", alpha = 0.2) + facet_wrap(~B22) +    ggtitle(month) + xlab("Time elasped in seconds") + ylab("THD1") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = "black")) 
+ i=i+1
+}
+grid.arrange(plots[[2]], plots[[3]], plots[[4]], plots[[5]], plots[[6]], plots[[7]], ncol=2, top = "Filter B22")
+```
+

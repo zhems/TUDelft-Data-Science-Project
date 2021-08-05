@@ -1,0 +1,10 @@
+"0","```r
+filtermonths1 <- c(\"Oct\", \"Nov\", \"Feb\", \"Mar\", \"Apr\")
+plots <- list()
+i <- 1
+for (month in filtermonths1){
+  plots[[i]] <- ggplot(data = df[df$B21month == month,]) + geom_point(aes(x=B21dif, y = THD1), color = \"dodgerblue\", alpha = 0.2) + facet_wrap(~B21) +    ggtitle(month) + xlab(\"Time elasped in seconds\") + ylab(\"THD1\") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.ticks.x=element_blank(), axis.ticks.y=element_blank(), plot.title = element_text(hjust = 0.5), axis.line = element_line(colour = \"black\")) 
+  i=i+1
+}
+grid.arrange(plots[[2]], plots[[3]], plots[[4]], plots[[5]], ncol=2, top = \"Filter B21\")
+```"

@@ -1,0 +1,79 @@
+"0","```r
+# Transforming date and time variables
+m46$StartTime <- as.POSIXct(m46$StartTime, format = \"%d/%m/%Y %H:%M\")
+m60$StartTime <- as.POSIXct(m60$StartTime, format = \"%Y-%m-%d %H:%M:%S\")
+m46$B11time <- as.POSIXct(m46$B11time, format = \"%d/%m/%Y %H:%M\")
+m60$B11time <- as.POSIXct(m60$B11time, format = \"%Y-%m-%d %H:%M:%S\")
+m46$B12time <- as.POSIXct(m46$B12time, format = \"%d/%m/%Y %H:%M\")
+m60$B12time <- as.POSIXct(m60$B12time, format = \"%Y-%m-%d %H:%M:%S\")
+m46$B21time <- as.POSIXct(m46$B21time, format = \"%d/%m/%Y %H:%M\")
+m60$B21time <- as.POSIXct(m60$B21time, format = \"%Y-%m-%d %H:%M:%S\")
+m46$B22time <- as.POSIXct(m46$B22time, format = \"%d/%m/%Y %H:%M\")
+m60$B22time <- as.POSIXct(m60$B22time, format = \"%Y-%m-%d %H:%M:%S\")
+
+# Combining the dataset
+m46$type <- \"m46\"
+m60$type <- \"m60\"
+
+# Adding time specific columns
+m46$month <- month.abb[month(m46$StartTime)]
+m46$time  <- time(m46$StartTime)
+m46$day   <- day(m46$StartTime)
+
+m60$month <- month.abb[month(m60$StartTime)]
+m60$time  <- time(m60$StartTime)
+m60$day   <- day(m60$StartTime)
+
+# Partitioning data by month
+m46$monthorder <- 0
+m46[m46$month == 'Nov', c('monthorder')] <- seq(1, nrow(m46[m46$month == 'Nov',]), 1)
+m46[m46$month == 'Dec', c('monthorder')] <- seq(1, nrow(m46[m46$month == 'Dec',]), 1)
+m46[m46$month == 'Jan', c('monthorder')] <- seq(1, nrow(m46[m46$month == 'Jan',]), 1)
+m46[m46$month == 'Feb', c('monthorder')] <- seq(1, nrow(m46[m46$month == 'Feb',]), 1)
+m46[m46$month == 'Mar', c('monthorder')] <- seq(1, nrow(m46[m46$month == 'Mar',]), 1)
+m46[m46$month == 'Apr', c('monthorder')] <- seq(1, nrow(m46[m46$month == 'Apr',]), 1)
+m46$month <- factor(m46$month, c(\"Nov\", \"Dec\", \"Jan\", \"Feb\", \"Mar\", \"Apr\")) #Ordering based on months
+
+m60$monthorder <- 0
+m60[m60$month == 'Nov', c('monthorder')] <- seq(1, nrow(m60[m60$month == 'Nov',]), 1)
+m60[m60$month == 'Dec', c('monthorder')] <- seq(1, nrow(m60[m60$month == 'Dec',]), 1)
+m60[m60$month == 'Jan', c('monthorder')] <- seq(1, nrow(m60[m60$month == 'Jan',]), 1)
+m60[m60$month == 'Feb', c('monthorder')] <- seq(1, nrow(m60[m60$month == 'Feb',]), 1)
+m60[m60$month == 'Mar', c('monthorder')] <- seq(1, nrow(m60[m60$month == 'Mar',]), 1)
+m60[m60$month == 'Apr', c('monthorder')] <- seq(1, nrow(m60[m60$month == 'Apr',]), 1)
+m60$month <- factor(m60$month, c(\"Nov\", \"Dec\", \"Jan\", \"Feb\", \"Mar\", \"Apr\")) #Ordering based on months
+
+# Partitioning data by day of the week
+m46$wday <- wday(m46$StartTime, label=TRUE)
+m46$dayorder <- 0
+months = c('Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr')
+days = 1:31
+for (month in months){
+  for (day in days){
+    if (max(m46[m46$month==month,'day']) < day){
+      next
+    }
+    m46[m46$month == month & m46$day == day, c('dayorder')] <- 1:nrow(m46[m46$month == month & m46$day == day, ])
+  }
+}
+
+m60$wday <- wday(m60$StartTime, label=TRUE)
+m60$dayorder <- 0
+months = c('Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr')
+days = 1:31
+for (month in months){
+  for (day in days){
+    if (max(m60[m60$month==month,'day']) < day){
+      next
+    }
+    m60[m60$month == month & m60$day == day, c('dayorder')] <- 1:nrow(m60[m60$month == month & m60$day == day, ])
+  }
+}
+
+# Adding week number data
+m46$week <- week(m46$StartTime)
+m60$week <- week(m60$StartTime)
+
+# combining datasets
+df <- rbind(m46, m60)
+```"

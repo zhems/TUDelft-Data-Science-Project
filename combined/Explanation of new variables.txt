@@ -1,0 +1,6 @@
+Explanation of new variables:
+B11/B12/B21/B22: shows current state of filter
+B11time/B12 time /B21 time /B22 time: time when the status of respective filter was last changed
+
+Explanation of new csv files:
+Sometimes within the 10 minutes interval, the filter status was changed multiple times. Each timed reading of mp46 and mp60 were mapped to the most recent status changes. The remaining changes are in these files. 

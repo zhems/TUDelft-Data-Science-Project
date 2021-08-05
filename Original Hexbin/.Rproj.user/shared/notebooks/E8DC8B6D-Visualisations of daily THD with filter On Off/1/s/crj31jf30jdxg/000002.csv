@@ -1,0 +1,55 @@
+"0","library(ggplot2)
+library(gridExtra)
+library(reshape)
+library(lubridate)
+"
+"2","
+Attaching package: ‘lubridate’
+
+"
+"2","The following object is masked from ‘package:reshape’:
+
+    stamp
+
+"
+"2","The following object is masked from ‘package:base’:
+
+    date
+
+"
+"0","library(zoo)"
+"2","
+Attaching package: ‘zoo’
+
+"
+"2","The following objects are masked from ‘package:base’:
+
+    as.Date, as.Date.numeric
+
+"
+"0","library(plyr)"
+"2","
+Attaching package: ‘plyr’
+
+"
+"2","The following object is masked from ‘package:lubridate’:
+
+    here
+
+"
+"2","The following objects are masked from ‘package:reshape’:
+
+    rename, round_any
+
+"
+"0","library(tidyr)"
+"2","
+Attaching package: ‘tidyr’
+
+"
+"2","The following objects are masked from ‘package:reshape’:
+
+    expand, smiths
+
+"
+"0","library(hexbin)"
